@@ -1,14 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
     public GameObject Player;
     public GameObject[] HealthBar;
+    public GameObject[] goAction;
+    public Sprite[] spriteAction;
     public string PlayerName { get; set; }
     public int Health { get; set; }
     public PlayerAction[] Action { get; set; }
+    
     public enum PlayerAction
     {
         Idle = 0,
@@ -24,7 +28,7 @@ public class PlayerController : MonoBehaviour
     {
         Health = 6;
         UpdateHealBar();
-        Action = new PlayerAction[3] { PlayerAction.Idle, PlayerAction.Idle, PlayerAction.Idle };
+        Action = new PlayerAction[3] { PlayerAction.Attack, PlayerAction.Attack, PlayerAction.Attack };
     }
     public bool DoAction(PlayerAction action)
     {
@@ -38,16 +42,14 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
-        for (int i = Action.Length - 1; i > 0; i--)
+        for (int i = 0; i < Action.Length - 1; i++)
         {
-            var temp = Action[i];
-            Action[i] = action;
-            if (i > 0)
-            {
-                Action[i - 1] = temp;
-            }
+            Action[i] = Action[i + 1];
         }
+        Action[Action.Length - 1] = action;
+        UpdateAction();
         return true;
+
     }
     public bool TakeDame()
     {
@@ -80,6 +82,12 @@ public class PlayerController : MonoBehaviour
                 Debug.Log("TakenDame");
             }
         }
+    }
+    void UpdateAction()
+    {
+        goAction[0].GetComponent<Image>().sprite = spriteAction[((int)Action[0])-1];
+        goAction[1].GetComponent<Image>().sprite = spriteAction[((int)Action[1])-1];
+        goAction[2].GetComponent<Image>().sprite = spriteAction[((int)Action[2])-1];
     }
     public void Dead()
     {

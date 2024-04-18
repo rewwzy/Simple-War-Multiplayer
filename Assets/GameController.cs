@@ -9,6 +9,8 @@ public class GameController : MonoBehaviour
     public GameObject[] Player;
     public GameObject[] ButtonAciton;
     public TextMeshProUGUI PLayerTurn;
+    public GameObject Menu;
+    public GameObject Winner;
     private GameObject CurrentPlayer;
 
     private int PlayerIndex = 0;
@@ -17,10 +19,28 @@ public class GameController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Winner.SetActive(false);
+        Menu.SetActive(true);
         CurrentPlayer = Player[PlayerIndex];
         CurrentPlayer.transform.Find("Action").gameObject.SetActive(true);
     }
-
+    public void NewGame()
+    {
+        Winner.SetActive(false);
+        //Menu.SetActive(true);
+        PlayerIndex = 0;
+        CurrentPlayer = Player[PlayerIndex];
+        CurrentPlayer.transform.Find("Action").gameObject.SetActive(true);
+        foreach (var player in Player)
+        {
+            player.GetComponent<PlayerController>().InitPlayer();
+            player.gameObject.SetActive(true);
+        }
+    }
+    public void QuitGame()
+    {
+        Application.Quit();
+    }
     [System.Obsolete]
     void NextPlayer()
     {
@@ -30,21 +50,24 @@ public class GameController : MonoBehaviour
             CurrentPlayer.transform.Find("Action").gameObject.SetActive(false);
             CurrentPlayer = Player[PlayerIndex];
             CurrentPlayer.transform.Find("Action").gameObject.SetActive(true);
-            while (Player[PlayerIndex].active == false)
+            if (IsGameFinish())
             {
-                if (PlayerIndex < Player.Length - 1)
+                while (Player[PlayerIndex].active == false)
                 {
-                    PlayerIndex += 1;
-                    CurrentPlayer.transform.Find("Action").gameObject.SetActive(false);
-                    CurrentPlayer = Player[PlayerIndex];
-                    CurrentPlayer.transform.Find("Action").gameObject.SetActive(true);
-                }
-                else
-                {
-                    PlayerIndex = 0;
-                    CurrentPlayer.transform.Find("Action").gameObject.SetActive(false);
-                    CurrentPlayer = Player[PlayerIndex];
-                    CurrentPlayer.transform.Find("Action").gameObject.SetActive(true);
+                    if (PlayerIndex < Player.Length - 1)
+                    {
+                        PlayerIndex += 1;
+                        CurrentPlayer.transform.Find("Action").gameObject.SetActive(false);
+                        CurrentPlayer = Player[PlayerIndex];
+                        CurrentPlayer.transform.Find("Action").gameObject.SetActive(true);
+                    }
+                    else
+                    {
+                        PlayerIndex = 0;
+                        CurrentPlayer.transform.Find("Action").gameObject.SetActive(false);
+                        CurrentPlayer = Player[PlayerIndex];
+                        CurrentPlayer.transform.Find("Action").gameObject.SetActive(true);
+                    }
                 }
             }
         }
@@ -54,8 +77,28 @@ public class GameController : MonoBehaviour
             CurrentPlayer.transform.Find("Action").gameObject.SetActive(false);
             CurrentPlayer = Player[PlayerIndex];
             CurrentPlayer.transform.Find("Action").gameObject.SetActive(true);
+            if (IsGameFinish())
+            {
+                while (Player[PlayerIndex].active == false)
+                {
+                    if (PlayerIndex < Player.Length - 1)
+                    {
+                        PlayerIndex += 1;
+                        CurrentPlayer.transform.Find("Action").gameObject.SetActive(false);
+                        CurrentPlayer = Player[PlayerIndex];
+                        CurrentPlayer.transform.Find("Action").gameObject.SetActive(true);
+                    }
+                    else
+                    {
+                        PlayerIndex = 0;
+                        CurrentPlayer.transform.Find("Action").gameObject.SetActive(false);
+                        CurrentPlayer = Player[PlayerIndex];
+                        CurrentPlayer.transform.Find("Action").gameObject.SetActive(true);
+                    }
+                }
+            }
         }
-        PLayerTurn.text = string.Format("Player {0} turn!",PlayerIndex+1);
+        PLayerTurn.text = string.Format("Player {0} turn!", PlayerIndex + 1);
     }
     public void DoAttackAction()
     {
@@ -111,6 +154,10 @@ public class GameController : MonoBehaviour
             }
             ButtonAciton[0].GetComponent<Image>().color = Color.white;
             isDoingAction = false;
+            foreach(var item in ButtonAciton)
+            {
+                item.GetComponent<Button>().enabled = true;
+            }
             NextPlayer();
         }
         else
@@ -120,12 +167,33 @@ public class GameController : MonoBehaviour
     }
     public void DoDef()
     {
-        CurrentPlayer.GetComponent<PlayerController>().DoAction(PlayerController.PlayerAction.Def);
-        NextPlayer();
+        if (CurrentPlayer.GetComponent<PlayerController>().DoAction(PlayerController.PlayerAction.Def))
+            NextPlayer();
     }
     public void DoSkip()
     {
         CurrentPlayer.GetComponent<PlayerController>().DoAction(PlayerController.PlayerAction.Skip);
         NextPlayer();
+    }
+
+    [System.Obsolete]
+    private bool IsGameFinish()
+    {
+        int _player_left = 0;
+        for (int i = 0; i < Player.Length; i++)
+        {
+            if (Player[i].gameObject.active == true)
+            {
+                _player_left += 1;
+            }
+        }
+        if (_player_left <= 1)
+        {
+            Winner.SetActive(true);
+            Winner.GetComponent<TextMeshProUGUI>().text = string.Format("Player {0} is the WINNER!", PlayerIndex + 1);
+            Menu.SetActive(true);
+            return true;
+        }
+        return false;
     }
 }
